@@ -1,16 +1,26 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import GoalForm from "../components/GoalForm";
 
 function Dashboard() {
   const navigate = useNavigate();
-
-  const user = localStorage.getItem("user");
+  const { user } = useSelector((state) => state.auth);
+  // const user = localStorage.getItem("user");
 
   useEffect(() => {
     if (!user) return navigate("/login");
-  }, [user]);
+  }, [user, navigate]);
 
-  return <div>Dashboard</div>;
+  return (
+    <>
+      <section className="heading">
+        <h1>Welcome {user && user.name}</h1>
+        <p>Goals Dashboard</p>
+      </section>
+      <GoalForm />
+    </>
+  );
 }
 
 export default Dashboard;
