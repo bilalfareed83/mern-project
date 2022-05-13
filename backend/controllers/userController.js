@@ -1,38 +1,37 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const asyncHandler = require("express-async-handler");
-const User = require("../models/userModel");
-const { use } = require("../routes/userRoutes");
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
+const asyncHandler = require('express-async-handler')
+const User = require('../models/userModel')
 
-//@desc Register new User
-//@route POST /api/users
-//@access Public
+// @desc    Register new user
+// @route   POST /api/users
+// @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password } = req.body
 
   if (!name || !email || !password) {
-    res.status(400);
-    throw new Error("Please add all field");
+    res.status(400)
+    throw new Error('Please add all fields')
   }
 
-  //check user exists
-  const userExist = await User.findOne({ email });
+  // Check if user exists
+  const userExists = await User.findOne({ email })
 
-  if (userExist) {
-    res.status(400);
-    throw new Error("User alreadt exists");
+  if (userExists) {
+    res.status(400)
+    throw new Error('User already exists')
   }
 
-  //hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  // Hash password
+  const salt = await bcrypt.genSalt(10)
+  const hashedPassword = await bcrypt.hash(password, salt)
 
-  //create user
+  // Create user
   const user = await User.create({
     name,
     email,
     password: hashedPassword,
-  });
+  })
 
   if (user) {
     res.status(201).json({
@@ -40,21 +39,21 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
-    });
+    })
   } else {
-    res.status(400);
-    throw new Error("Invalid user data");
+    res.status(400)
+    throw new Error('Invalid user data')
   }
-});
+})
 
-//@desc Authenticate a  User
-//@route POST /api/users/login
-//@access Public
+// @desc    Authenticate a user
+// @route   POST /api/users/login
+// @access  Public
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body
 
-  //check user email
-  const user = await User.findOne({ email });
+  // Check for user email
+  const user = await User.findOne({ email })
 
   if (user && (await bcrypt.compare(password, user.password))) {
     res.json({
@@ -62,29 +61,29 @@ const loginUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
-    });
+    })
   } else {
-    res.status(400);
-    throw new Error("Invaild user data");
+    res.status(400)
+    throw new Error('Invalid credentials')
   }
-});
+})
 
-//@desc Get user data
-//@route Get /api/users/me
-//@access Private
+// @desc    Get user data
+// @route   GET /api/users/me
+// @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  res.status(200).json(req.user);
-});
+  res.status(200).json(req.user)
+})
 
-//Generate Token
+// Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
-  });
-};
+    expiresIn: '30d',
+  })
+}
 
 module.exports = {
   registerUser,
   loginUser,
   getMe,
-};
+}
